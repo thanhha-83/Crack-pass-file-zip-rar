@@ -6,6 +6,8 @@ from threading import Thread
 import argparse
 from itertools import product
 import time
+from concurrent.futures import ThreadPoolExecutor
+
 
 parser = argparse.ArgumentParser(description='CompressedCrack', epilog='Use the -h for help')
 parser.add_argument('-i','--input', help='Insert the file path of compressed file', required=True)
@@ -118,49 +120,40 @@ class Handler:
 
 	def CheckRules(self):
 		self.start_time = time.process_time()
-		print ('Cracking...')
+		print('Cracking...')
+		executor = ThreadPoolExecutor(max_workers=6)
 		if not self.rules:
-			length = 1
-			while True:
-				self.SendRequest(length)
-				if self.result:
-					return
-				length += 1
-		else:
-			for length in range(self.startLength, self.maxLength + 1, 3):
-				threads = []
-				nThread = Thread(target=self.SendRequest, args=(length, ))
-				nThread.start()
-				threads.append(nThread)
-				length2 = length + 1
-				if length2 <= self.maxLength:
-					nThread = Thread(target=self.SendRequest, args=(length2, ))
-					nThread.start()
-					threads.append(nThread)
-					length3 = length2 + 1
-					if length3 <= self.maxLength:
-						nThread = Thread(target=self.SendRequest, args=(length3, ))
-						nThread.start()
-						threads.append(nThread)
-				for t in threads:
-					t.join()
-				if self.result:
-					return
-			if not self.result:
-				print ('Cannot find password with this rules')
+			self.startLength = 1
+			self.maxLength = 30
+		for length in range(self.startLength, self.maxLength + 1):
+			future = executor.submit(self.SendRequest, length, 0)
+			future = executor.submit(self.SendRequest, length, -1)
+			future = executor.submit(self.SendRequest, length, 1)
+			if self.result:
 				return
+		if not self.result:
+			return
 
-	def SendRequest(self,length):
-		listPass = product(self.character, repeat=length - len(self.guessFirstLength) - len(self.guessLastLength))
+	def SendRequest(self, length, rev):
+		print('Working on ', length, 'and ', rev)
+		if rev == 1:
+			character = self.character[::-1]
+		elif rev == 0:
+			character = self.character
+		else:
+			character = self.character[int(len(self.character)/2):] + self.character[:int(len(self.character)/2)]
+		listPass = product(character, repeat=length - len(self.guessFirstLength) - len(self.guessLastLength))
 		for Pass in listPass:
 			tryPass = self.guessFirstLength + ''.join(Pass) + self.guessLastLength
 			self.Brute(tryPass)
 			if self.result:
 				return
+		print('Finished on ', length, 'and ', rev)
 def main():
 	check = Check(sys.argv[1:])
 	args = parser.parse_args()
 	rarfile.UNRAR_TOOL = "UnRAR.exe"
 	Handling = Handler(check.rules, check.type, check.startLength, check.maxLength, check.character, check.guessFirstLength, check.guessLastLength)
-if __name__ == '__main__':
-    main()
+
+if __name__ == "__main__":
+	main()
