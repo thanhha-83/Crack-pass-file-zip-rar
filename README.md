@@ -45,5 +45,5 @@ optional arguments:
 ```  
 ## Use with GUI
 ```
-It easy for you to use.
+Run CrackCompressedFile.exe in folder GUI
 ```
