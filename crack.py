@@ -9,7 +9,7 @@ import time
 
 parser = argparse.ArgumentParser(description='CompressedCrack', epilog='Use the -h for help')
 parser.add_argument('-i','--input', help='Insert the file path of compressed file', required=True)
-parser.add_argument('rules', nargs='*', help='<min> <max> <character>')
+parser.add_argument('rules', nargs='*', help='<min> <max> <character> <guessFirstLength> <guessLastLength>')
 
 # Const Character
 CHARACTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+=~`[]{}|\\:;\"'<>,.?/"
@@ -21,6 +21,8 @@ class Check:
 		self.startLength = None
 		self.maxLength = None
 		self.character = None
+		self.guessFirstLength = None
+		self.guessLastLength = None
 		# Check Rules
 		if len(Arg) >= 4:
 			self.getData(Arg)
@@ -51,8 +53,15 @@ class Check:
 		if self.startLength > self.maxLength:
 			print ('Length Error')
 			parser.exit()
-		if len(Arg) == 5:
-			self.character = Arg[4]
+		if len(Arg) >= 5:
+			if Arg[4] != 'def':
+				self.character = Arg[4]
+		if len(Arg) >= 6:
+			if Arg[5] != 'none':
+				self.guessFirstLength = Arg[5]
+		if len(Arg) >= 7:
+			if Arg[6] != 'none':
+				self.guessLastLength = Arg[6]
 	
 	def getType(self, Arg):
 		if os.path.splitext(Arg[1])[1] == ".rar" or os.path.splitext(Arg[1])[1]==".zip":
@@ -62,7 +71,7 @@ class Check:
 			parser.exit()
 
 class Handler:
-	def __init__(self, rules, typeCompress, startLength, maxLength, character):
+	def __init__(self, rules, typeCompress, startLength, maxLength, character, guessFirstLength, guessLastLength):
 		self.rules = rules
 		self.location = sys.argv[2]
 		self.type = typeCompress
@@ -72,6 +81,14 @@ class Handler:
 			self.character = CHARACTER
 		else:
 			self.character = character
+		if not guessFirstLength:
+			self.guessFirstLength = ''
+		else:
+			self.guessFirstLength = guessFirstLength
+		if not guessLastLength:
+			self.guessLastLength = ''
+		else:
+			self.guessLastLength = guessLastLength
 		self.result = False
 
 		self.GetFile()
@@ -134,9 +151,9 @@ class Handler:
 				return
 
 	def SendRequest(self,length):
-		listPass = product(self.character, repeat=length)
+		listPass = product(self.character, repeat=length - len(self.guessFirstLength) - len(self.guessLastLength))
 		for Pass in listPass:
-			tryPass = ''.join(Pass)
+			tryPass = self.guessFirstLength + ''.join(Pass) + self.guessLastLength
 			self.Brute(tryPass)
 			if self.result:
 				return
@@ -144,6 +161,6 @@ def main():
 	check = Check(sys.argv[1:])
 	args = parser.parse_args()
 	rarfile.UNRAR_TOOL = "UnRAR.exe"
-	Handling = Handler(check.rules, check.type, check.startLength, check.maxLength, check.character)
+	Handling = Handler(check.rules, check.type, check.startLength, check.maxLength, check.character, check.guessFirstLength, check.guessLastLength)
 if __name__ == '__main__':
     main()
