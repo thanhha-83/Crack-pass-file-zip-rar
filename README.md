@@ -16,7 +16,7 @@ git clone https://github.com/thanhha-83/Crack-pass-file-zip-rar.git
 cd ./Crack-pass-file-zip-rar
 ```
 
-## Use in terminal
+## Use with terminal
 1. Crack with a set of characters
 ```
 python crack.py -i INPUT [rules [rules ...]]
