@@ -1,5 +1,5 @@
 # Crack-pass-file-zip-rar
-This is a simple tool to hekp you crack password of zip or rar files.
+This is a simple tool to help you crack password of zip or rar files.
 
 Author: Thanh Ha.
 
