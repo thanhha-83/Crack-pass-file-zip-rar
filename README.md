@@ -32,7 +32,7 @@ optional arguments:
 ```  
 2. Crack with a file password (txt)
 ```
-crackwithfilepass.py [-h] -i INPUT [filepass [filepass ...]]
+python crackwithfilepass.py [-h] -i INPUT [filepass [filepass ...]]
 
 positional arguments:
   filepass               <file password>
