@@ -120,21 +120,20 @@ class Handler:
 	def CheckRules(self):
 		self.start_time = time.process_time()
 		self.listChecked = list()
-		print(self.listChecked)
 		print('Cracking...')
 		executor = ThreadPoolExecutor(max_workers=6)
 		character0 = self.character
 		character1 = self.character[::-1]
 		character2 = self.character[int(len(self.character)/2):] + self.character[:int(len(self.character)/2)]
-		if self.startLength == "noStartLength":
+		if not self.rules:
 			self.startLength = 1
-			self.maxLength = 30
+			self.maxLength = 20
 		for length in range(self.startLength, self.maxLength + 1):
 			future = executor.submit(self.SendRequest, length, character0)
 			future = executor.submit(self.SendRequest, length, character1)
 			future = executor.submit(self.SendRequest, length, character2)
 
-	def SendRequest(self, length, rev):
+	def SendRequest(self, length, character):
 		listPass = product(character, repeat=length - len(self.guessFirstLength) - len(self.guessLastLength))
 		for Pass in listPass:
 			temp = Pass
