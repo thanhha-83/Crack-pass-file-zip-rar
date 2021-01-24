@@ -125,7 +125,6 @@ class Handler:
 	def CheckRules(self):
 		self.start_time = time.process_time()
 		self.listChecked = list()
-		print(self.listChecked)
 		print('Cracking...')
 		executor = ThreadPoolExecutor(max_workers=6)
 		character0 = self.character
