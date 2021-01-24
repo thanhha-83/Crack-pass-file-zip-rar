@@ -2,14 +2,12 @@ import zipfile
 import rarfile
 import os
 import sys
-from threading import Thread
 import argparse
 from itertools import product
 import time
 from concurrent.futures import ThreadPoolExecutor
 from tkinter import messagebox
 from tkinter import *
-import csv
 from datetime import datetime
 
 parser = argparse.ArgumentParser(description='CompressedCrack', epilog='Use the -h for help')
@@ -126,35 +124,33 @@ class Handler:
 
 	def CheckRules(self):
 		self.start_time = time.process_time()
+		self.listChecked = list()
+		print(self.listChecked)
 		print('Cracking...')
 		executor = ThreadPoolExecutor(max_workers=6)
+		character0 = self.character
+		character1 = self.character[::-1]
+		character2 = self.character[int(len(self.character)/2):] + self.character[:int(len(self.character)/2)]
 		if self.startLength == "noStartLength":
 			self.startLength = 1
 			self.maxLength = 30
 		for length in range(self.startLength, self.maxLength + 1):
-			future = executor.submit(self.SendRequest, length, 0)
-			future = executor.submit(self.SendRequest, length, -1)
-			future = executor.submit(self.SendRequest, length, 1)
-			if self.result:
-				#executor.shutdown(wait=False)
-				return
+			future = executor.submit(self.SendRequest, length, character0)
+			future = executor.submit(self.SendRequest, length, character1)
+			future = executor.submit(self.SendRequest, length, character2)
 
-	def SendRequest(self, length, rev):
-		#print('Working on ', length, 'and ', rev)
-		if rev == 1:
-			character = self.character[::-1]
-		elif rev == 0:
-			character = self.character
-		else:
-			character = self.character[int(len(self.character)/2):] + self.character[:int(len(self.character)/2)]
+	def SendRequest(self, length, character):
 		listPass = product(character, repeat=length - len(self.guessFirstLength) - len(self.guessLastLength))
 		for Pass in listPass:
-			tryPass = self.guessFirstLength + ''.join(Pass) + self.guessLastLength
-			self.Brute(tryPass)
-			if self.result:
-				#executor.shutdown(wait=False)
-				return
-		#print('Finished on ', length, 'and ', rev)
+			temp = Pass
+			if temp not in self.listChecked:
+				self.listChecked.append(temp)
+				tryPass = self.guessFirstLength + ''.join(Pass) + self.guessLastLength
+				self.Brute(tryPass)
+				if self.result:
+					return
+			else:
+				continue
 def main():
 	check = Check(sys.argv[1:])
 	args = parser.parse_args()
